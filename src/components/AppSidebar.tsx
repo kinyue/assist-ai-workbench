@@ -41,30 +41,30 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-primary text-primary-foreground font-medium shadow-sm" 
-      : "hover:bg-muted/50 transition-colors";
+      ? "bg-blue-600 text-white font-medium shadow-sm" 
+      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors";
 
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className={isCollapsed ? "w-14" : "w-64"}>
-      <div className="p-4 border-b">
+    <Sidebar className={`${isCollapsed ? "w-14" : "w-64"} bg-white border-r border-gray-200`}>
+      <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
             <FileText className="w-4 h-4 text-white" />
           </div>
           {!isCollapsed && (
             <div>
-              <h2 className="font-semibold text-lg">Working Assistant</h2>
-              <p className="text-xs text-muted-foreground">Development Tools</p>
+              <h2 className="font-semibold text-lg text-gray-900">Working Assistant</h2>
+              <p className="text-xs text-gray-600">Development Tools</p>
             </div>
           )}
         </div>
       </div>
 
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-2 bg-white">
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
+          <SidebarGroupLabel className={`${isCollapsed ? "sr-only" : ""} text-gray-600 font-medium`}>
             Tools
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -79,7 +79,7 @@ export function AppSidebar() {
                       title={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span className="ml-2">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -89,8 +89,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <div className="p-2 border-t">
-        <SidebarTrigger className="w-full" />
+      <div className="p-2 border-t border-gray-200 bg-white">
+        <SidebarTrigger className="w-full text-gray-700 hover:bg-gray-100" />
       </div>
     </Sidebar>
   );
