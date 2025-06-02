@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Github, CheckCircle, AlertTriangle, XCircle, GitPullRequest } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Github, CheckCircle, AlertTriangle, XCircle, GitPullRequest, Upload, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const dummyReviewData = {
@@ -68,10 +68,20 @@ const dummyReviewData = {
 
 const PRReviewer = () => {
   const [prUrl, setPrUrl] = useState("https://github.com/company/repo/pull/456");
-  const [jiraTickets, setJiraTickets] = useState("PROJ-123, PROJ-124");
+  const [jiraInput, setJiraInput] = useState("PROJ-123, PROJ-124");
+  const [jiraFile, setJiraFile] = useState<File | null>(null);
+  const [inputMethod, setInputMethod] = useState<"manual" | "upload">("manual");
   const [isLoading, setIsLoading] = useState(false);
   const [reviewData, setReviewData] = useState<any>(null);
   const { toast } = useToast();
+
+  const handleFileUpload = (file: File) => {
+    setJiraFile(file);
+    toast({
+      title: "File Uploaded",
+      description: `${file.name} has been uploaded successfully.`,
+    });
+  };
 
   const handleReview = async () => {
     setIsLoading(true);
@@ -137,19 +147,60 @@ const PRReviewer = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Related Jira Tickets</CardTitle>
-            <CardDescription>Enter comma-separated Jira ticket keys</CardDescription>
+            <CardTitle>Jira Requirements</CardTitle>
+            <CardDescription>Provide Jira ticket data for comparison</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="jira-tickets">Jira Ticket Keys</Label>
-              <Input
-                id="jira-tickets"
-                value={jiraTickets}
-                onChange={(e) => setJiraTickets(e.target.value)}
-                placeholder="PROJ-123, PROJ-124, PROJ-125"
-              />
-            </div>
+            <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as "manual" | "upload")}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="manual">Manual Input</TabsTrigger>
+                <TabsTrigger value="upload">File Upload</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="manual" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="jira-tickets">Jira Ticket Keys</Label>
+                  <Input
+                    id="jira-tickets"
+                    value={jiraInput}
+                    onChange={(e) => setJiraInput(e.target.value)}
+                    placeholder="PROJ-123, PROJ-124, PROJ-125"
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="upload" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Upload JSON or Markdown file with Jira ticket data
+                    </p>
+                    <Input
+                      type="file"
+                      accept=".json,.md,.markdown"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file);
+                      }}
+                      className="hidden"
+                      id="jira-upload"
+                    />
+                    <Button variant="outline" size="sm" asChild>
+                      <label htmlFor="jira-upload" className="cursor-pointer">
+                        Choose File
+                      </label>
+                    </Button>
+                  </div>
+                  {jiraFile && (
+                    <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                      <FileText className="w-4 h-4" />
+                      <span className="text-sm">{jiraFile.name}</span>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>

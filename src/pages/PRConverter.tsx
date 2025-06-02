@@ -16,7 +16,64 @@ const dummyPRData = {
   author: "john.doe",
   branch: "feature/auth-system",
   status: "open",
-  files: ["src/auth/login.ts", "src/auth/middleware.ts", "src/types/user.ts"],
+  files: [
+    {
+      name: "src/auth/login.ts",
+      additions: 45,
+      deletions: 2,
+      diff: `@@ -1,10 +1,15 @@
+import { User } from '../types/user';
++import { validatePassword } from '../utils/validation';
+
+export class AuthService {
++  private static instance: AuthService;
++
++  public static getInstance(): AuthService {
++    if (!AuthService.instance) {
++      AuthService.instance = new AuthService();
++    }
++    return AuthService.instance;
++  }
++
+-  async login(email: string, password: string): Promise<User> {
++  async login(email: string, password: string): Promise<User | null> {
++    if (!validatePassword(password)) {
++      throw new Error('Invalid password format');
++    }
+     // Login implementation
+   }
+}`
+    },
+    {
+      name: "src/auth/middleware.ts", 
+      additions: 32,
+      deletions: 0,
+      diff: `@@ -0,0 +1,32 @@
++import { Request, Response, NextFunction } from 'express';
++import { AuthService } from './login';
++
++export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
++  try {
++    const token = req.headers.authorization?.split(' ')[1];
++    if (!token) {
++      return res.status(401).json({ error: 'No token provided' });
++    }
++
++    const authService = AuthService.getInstance();
++    const user = await authService.validateToken(token);
++    
++    if (!user) {
++      return res.status(401).json({ error: 'Invalid token' });
++    }
++
++    req.user = user;
++    next();
++  } catch (error) {
++    return res.status(401).json({ error: 'Authentication failed' });
++  }
++};`
+    }
+  ],
   commits: 5,
   additions: 245,
   deletions: 12,
@@ -69,7 +126,13 @@ ${convertedData.description}
 - **Deletions:** -${convertedData.deletions}
 
 ## Files Modified
-${convertedData.files.map(file => `- ${file}`).join('\n')}
+${convertedData.files.map(file => `### ${file.name}
+**Changes:** +${file.additions} -${file.deletions}
+
+\`\`\`diff
+${file.diff}
+\`\`\`
+`).join('\n')}
 
 ## Reviewers
 ${convertedData.reviewers.map(reviewer => `- @${reviewer}`).join('\n')}
@@ -147,56 +210,85 @@ ${convertedData.reviewers.map(reviewer => `- @${reviewer}`).join('\n')}
       </div>
 
       {convertedData && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Export Options</CardTitle>
-            <CardDescription>Choose your preferred export format</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="json" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="json">JSON Format</TabsTrigger>
-                <TabsTrigger value="markdown">Markdown Format</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="json" className="space-y-4">
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(jsonOutput)}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy JSON
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download JSON
-                  </Button>
-                </div>
-                <Textarea
-                  value={jsonOutput}
-                  readOnly
-                  className="min-h-[300px] font-mono text-sm"
-                />
-              </TabsContent>
-              
-              <TabsContent value="markdown" className="space-y-4">
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(markdownOutput)}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Markdown
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download MD
-                  </Button>
-                </div>
-                <Textarea
-                  value={markdownOutput}
-                  readOnly
-                  className="min-h-[300px] font-mono text-sm"
-                />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>File Changes</CardTitle>
+              <CardDescription>Detailed diff for each modified file</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {convertedData.files.map((file: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium">{file.name}</h4>
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="text-green-600">+{file.additions}</Badge>
+                        <Badge variant="outline" className="text-red-600">-{file.deletions}</Badge>
+                      </div>
+                    </div>
+                    <Textarea
+                      value={file.diff}
+                      readOnly
+                      className="font-mono text-xs min-h-[200px]"
+                    />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Export Options</CardTitle>
+              <CardDescription>Choose your preferred export format</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="json" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="json">JSON Format</TabsTrigger>
+                  <TabsTrigger value="markdown">Markdown Format</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="json" className="space-y-4">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(jsonOutput)}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy JSON
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download JSON
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={jsonOutput}
+                    readOnly
+                    className="min-h-[300px] font-mono text-sm"
+                  />
+                </TabsContent>
+                
+                <TabsContent value="markdown" className="space-y-4">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(markdownOutput)}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Markdown
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download MD
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={markdownOutput}
+                    readOnly
+                    className="min-h-[300px] font-mono text-sm"
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

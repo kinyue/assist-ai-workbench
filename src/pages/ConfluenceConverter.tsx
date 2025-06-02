@@ -1,106 +1,111 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Copy, Download } from "lucide-react";
+import { Globe, Download, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const dummyMarkdown = `# API Documentation
+const dummyConfluenceData = {
+  title: "API Documentation - User Authentication",
+  spaceKey: "DEV",
+  pageId: "123456789",
+  author: "john.doe",
+  lastModified: "2024-01-15T10:30:00Z",
+  content: `# User Authentication API
 
 ## Overview
-This document provides comprehensive information about our REST API endpoints.
-
-## Authentication
-All API requests require authentication using Bearer tokens:
-
-\`\`\`bash
-curl -H "Authorization: Bearer YOUR_TOKEN" https://api.example.com/v1/users
-\`\`\`
+This document describes the user authentication endpoints and their usage.
 
 ## Endpoints
 
-### GET /users
-Retrieve a list of all users.
-
-**Parameters:**
-- \`limit\` (optional): Number of users to return (default: 20)
-- \`offset\` (optional): Number of users to skip (default: 0)
-
-**Response:**
-\`\`\`json
-{
-  "users": [
-    {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john@example.com"
-    }
-  ],
-  "total": 150
-}
-\`\`\`
-
-### POST /users
-Create a new user.
+### POST /api/auth/login
+Authenticates a user and returns a JWT token.
 
 **Request Body:**
 \`\`\`json
 {
-  "name": "Jane Smith",
-  "email": "jane@example.com",
-  "role": "admin"
+  "email": "user@example.com",
+  "password": "password123"
 }
 \`\`\`
 
+**Response:**
+\`\`\`json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe"
+  }
+}
+\`\`\`
+
+### POST /api/auth/register
+Creates a new user account.
+
 ## Error Handling
-The API uses standard HTTP status codes:
-
-- \`200\` - Success
-- \`400\` - Bad Request
-- \`401\` - Unauthorized
-- \`404\` - Not Found
-- \`500\` - Internal Server Error
-
-## Rate Limiting
-API requests are limited to 1000 requests per hour per API key.`;
+All endpoints return appropriate HTTP status codes and error messages.`,
+  attachments: ["auth-flow-diagram.png", "api-schema.json"],
+  labels: ["api", "authentication", "security"],
+  version: 5
+};
 
 const ConfluenceConverter = () => {
-  const [pageUrl, setPageUrl] = useState("https://company.atlassian.net/wiki/spaces/DEV/pages/123456789/API+Documentation");
+  const [confluenceUrl, setConfluenceUrl] = useState("https://company.atlassian.net/wiki/spaces/DEV/pages/123456789");
   const [isLoading, setIsLoading] = useState(false);
-  const [convertedMarkdown, setConvertedMarkdown] = useState("");
-  const [pageInfo, setPageInfo] = useState<any>(null);
+  const [convertedData, setConvertedData] = useState<any>(null);
   const { toast } = useToast();
 
   const handleConvert = async () => {
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
-      setConvertedMarkdown(dummyMarkdown);
-      setPageInfo({
-        title: "API Documentation",
-        space: "Development",
-        author: "john.doe@company.com",
-        lastModified: "2024-01-15",
-        version: 5
-      });
+      setConvertedData(dummyConfluenceData);
       setIsLoading(false);
       toast({
-        title: "Page Converted Successfully",
-        description: "Confluence page has been converted to Markdown format.",
+        title: "Confluence Page Converted",
+        description: "Page has been converted to both JSON and Markdown formats.",
       });
     }, 2500);
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(convertedMarkdown);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
     toast({
       title: "Copied to Clipboard",
-      description: "The Markdown content has been copied to your clipboard.",
+      description: "The content has been copied to your clipboard.",
     });
   };
+
+  const jsonOutput = convertedData ? JSON.stringify(convertedData, null, 2) : "";
+  
+  const markdownOutput = convertedData ? `# ${convertedData.title}
+
+**Space:** ${convertedData.spaceKey}  
+**Page ID:** ${convertedData.pageId}  
+**Author:** ${convertedData.author}  
+**Last Modified:** ${new Date(convertedData.lastModified).toLocaleString()}  
+**Version:** ${convertedData.version}
+
+## Labels
+${convertedData.labels.map((label: string) => `- ${label}`).join('\n')}
+
+## Content
+
+${convertedData.content}
+
+## Attachments
+${convertedData.attachments.map((attachment: string) => `- ${attachment}`).join('\n')}
+
+---
+*Converted from Confluence on ${new Date().toLocaleString()}*
+` : "";
 
   return (
     <div className="space-y-6">
@@ -110,7 +115,7 @@ const ConfluenceConverter = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold">Confluence to Markdown</h1>
-          <p className="text-muted-foreground">Convert Confluence pages to clean Markdown format</p>
+          <p className="text-muted-foreground">Convert Confluence pages to JSON or Markdown format</p>
         </div>
       </div>
 
@@ -122,47 +127,55 @@ const ConfluenceConverter = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="page-url">Confluence Page URL</Label>
+              <Label htmlFor="confluence-url">Confluence Page URL</Label>
               <Input
-                id="page-url"
-                value={pageUrl}
-                onChange={(e) => setPageUrl(e.target.value)}
-                placeholder="https://company.atlassian.net/wiki/spaces/..."
+                id="confluence-url"
+                value={confluenceUrl}
+                onChange={(e) => setConfluenceUrl(e.target.value)}
+                placeholder="https://company.atlassian.net/wiki/spaces/SPACE/pages/123456789"
               />
             </div>
             <Button onClick={handleConvert} disabled={isLoading} className="w-full">
-              {isLoading ? "Converting..." : "Convert to Markdown"}
+              {isLoading ? "Converting..." : "Convert Page"}
             </Button>
           </CardContent>
         </Card>
 
-        {pageInfo && (
+        {convertedData && (
           <Card>
             <CardHeader>
-              <CardTitle>Page Information</CardTitle>
-              <CardDescription>Details about the converted page</CardDescription>
+              <CardTitle>Page Summary</CardTitle>
+              <CardDescription>Overview of the converted Confluence page</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <h4 className="font-medium">{pageInfo.title}</h4>
-                <Badge variant="outline" className="mt-1">{pageInfo.space}</Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <span className="text-muted-foreground">Author:</span>
-                  <div>{pageInfo.author}</div>
+                  <h4 className="font-medium">{convertedData.title}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline">{convertedData.spaceKey}</Badge>
+                    <Badge variant="secondary">v{convertedData.version}</Badge>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Labels:</span> {convertedData.labels.length}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Attachments:</span> {convertedData.attachments.length}
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Author:</span> {convertedData.author}
+                  </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Version:</span>
-                  <div>{pageInfo.version}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Last Modified:</span>
-                  <div>{pageInfo.lastModified}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Status:</span>
-                  <Badge variant="secondary">Published</Badge>
+                  <h5 className="font-medium mb-2">Labels</h5>
+                  <div className="flex flex-wrap gap-1">
+                    {convertedData.labels.map((label: string) => (
+                      <Badge key={label} variant="outline" className="text-xs">
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -170,43 +183,58 @@ const ConfluenceConverter = () => {
         )}
       </div>
 
-      {convertedMarkdown && (
+      {convertedData && (
         <Card>
           <CardHeader>
-            <CardTitle>Converted Markdown</CardTitle>
-            <CardDescription>Clean Markdown output from the Confluence page</CardDescription>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Markdown
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                Download MD
-              </Button>
-            </div>
+            <CardTitle>Export Options</CardTitle>
+            <CardDescription>Choose your preferred export format</CardDescription>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={convertedMarkdown}
-              readOnly
-              className="min-h-[400px] font-mono text-sm"
-            />
+            <Tabs defaultValue="markdown" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="markdown">Markdown Format</TabsTrigger>
+                <TabsTrigger value="json">JSON Format</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="markdown" className="space-y-4">
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(markdownOutput)}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Markdown
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download MD
+                  </Button>
+                </div>
+                <Textarea
+                  value={markdownOutput}
+                  readOnly
+                  className="min-h-[400px] font-mono text-sm"
+                />
+              </TabsContent>
+              
+              <TabsContent value="json" className="space-y-4">
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(jsonOutput)}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy JSON
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download JSON
+                  </Button>
+                </div>
+                <Textarea
+                  value={jsonOutput}
+                  readOnly
+                  className="min-h-[400px] font-mono text-sm"
+                />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       )}
-
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardContent className="pt-6">
-          <h3 className="font-semibold mb-2">Features</h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Preserves formatting and structure</li>
-            <li>• Converts tables, code blocks, and links</li>
-            <li>• Maintains document hierarchy</li>
-            <li>• Supports bulk conversion</li>
-          </ul>
-        </CardContent>
-      </Card>
     </div>
   );
 };

@@ -1,65 +1,85 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Ticket, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Ticket, CheckCircle, AlertTriangle, XCircle, Upload, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const dummyReviewData = {
-  ticket: {
+  jiraTicket: {
     key: "PROJ-123",
     title: "Implement User Authentication System",
-    status: "In Progress"
+    acceptanceCriteria: [
+      "User can login with email/password",
+      "JWT tokens are generated",
+      "Password reset via email works",
+      "Session management is implemented"
+    ]
   },
   confluencePage: {
-    title: "Authentication Requirements",
-    space: "Technical Documentation"
+    title: "Authentication API Documentation",
+    requirements: [
+      "Support OAuth 2.0",
+      "Implement rate limiting",
+      "Add audit logging",
+      "Support multi-factor authentication"
+    ]
   },
   analysis: {
     overallScore: 75,
-    completeness: 80,
-    alignment: 70,
-    issues: [
+    coverageScore: 80,
+    consistencyScore: 70,
+    completenessScore: 75,
+    gaps: [
       {
-        type: "missing",
+        type: "missing_requirement",
         severity: "high",
-        category: "Acceptance Criteria",
-        description: "Missing requirement for password complexity validation",
-        suggestion: "Add acceptance criteria for password strength requirements as specified in the Confluence documentation"
+        description: "OAuth 2.0 support mentioned in Confluence but not in Jira acceptance criteria",
+        suggestion: "Add OAuth 2.0 implementation to Jira ticket acceptance criteria"
       },
       {
-        type: "mismatch",
+        type: "incomplete_criteria",
         severity: "medium", 
-        category: "Technical Approach",
-        description: "JWT token expiration time differs from documentation",
-        suggestion: "Update ticket to use 24-hour token expiration as per security guidelines"
-      },
-      {
-        type: "incomplete",
-        severity: "low",
-        category: "Testing Requirements",
-        description: "No mention of security testing requirements",
-        suggestion: "Add acceptance criteria for penetration testing and security validation"
+        description: "Rate limiting requirement from Confluence not addressed in Jira",
+        suggestion: "Include API rate limiting in the authentication system requirements"
       }
     ],
     recommendations: [
-      "Align token expiration settings with security documentation",
-      "Add specific testing criteria for authentication flows",
-      "Include error handling specifications for failed login attempts",
-      "Reference related security documentation in ticket description"
+      "Align Jira acceptance criteria with Confluence requirements",
+      "Add technical implementation details to ticket",
+      "Consider breaking down into smaller subtasks",
+      "Define clear testing criteria"
     ]
   }
 };
 
 const JiraReviewer = () => {
-  const [ticketUrl, setTicketUrl] = useState("https://company.atlassian.net/browse/PROJ-123");
-  const [confluenceUrl, setConfluenceUrl] = useState("https://company.atlassian.net/wiki/spaces/TECH/pages/123456/Authentication+Requirements");
+  const [jiraInput, setJiraInput] = useState("");
+  const [confluenceInput, setConfluenceInput] = useState("");
+  const [jiraFile, setJiraFile] = useState<File | null>(null);
+  const [confluenceFile, setConfluenceFile] = useState<File | null>(null);
+  const [inputMethod, setInputMethod] = useState<"url" | "upload">("url");
   const [isLoading, setIsLoading] = useState(false);
   const [reviewData, setReviewData] = useState<any>(null);
   const { toast } = useToast();
+
+  const handleFileUpload = (file: File, type: "jira" | "confluence") => {
+    if (type === "jira") {
+      setJiraFile(file);
+    } else {
+      setConfluenceFile(file);
+    }
+    toast({
+      title: "File Uploaded",
+      description: `${file.name} has been uploaded successfully.`,
+    });
+  };
 
   const handleReview = async () => {
     setIsLoading(true);
@@ -69,7 +89,7 @@ const JiraReviewer = () => {
       setIsLoading(false);
       toast({
         title: "Review Completed",
-        description: "Jira ticket has been analyzed against Confluence documentation.",
+        description: "Jira task has been reviewed against Confluence documentation.",
       });
     }, 3500);
   };
@@ -104,48 +124,132 @@ const JiraReviewer = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Jira Ticket</CardTitle>
-            <CardDescription>Enter the Jira ticket URL to review</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="ticket-url">Jira Ticket URL</Label>
-              <Input
-                id="ticket-url"
-                value={ticketUrl}
-                onChange={(e) => setTicketUrl(e.target.value)}
-                placeholder="https://company.atlassian.net/browse/PROJ-123"
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Input Method</CardTitle>
+          <CardDescription>Choose how to provide Jira and Confluence data</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as "url" | "upload")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="url">URLs</TabsTrigger>
+              <TabsTrigger value="upload">File Upload</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="url" className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="jira-url">Jira Ticket URL</Label>
+                    <Input
+                      id="jira-url"
+                      value={jiraInput}
+                      onChange={(e) => setJiraInput(e.target.value)}
+                      placeholder="https://company.atlassian.net/browse/PROJ-123"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="confluence-url">Confluence Page URL</Label>
+                    <Input
+                      id="confluence-url"
+                      value={confluenceInput}
+                      onChange={(e) => setConfluenceInput(e.target.value)}
+                      placeholder="https://company.atlassian.net/wiki/spaces/DEV/pages/123456789"
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="upload" className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Jira Data</CardTitle>
+                    <CardDescription>Upload JSON or Markdown file with Jira ticket data</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Drag and drop or click to upload
+                        </p>
+                        <Input
+                          type="file"
+                          accept=".json,.md,.markdown"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileUpload(file, "jira");
+                          }}
+                          className="hidden"
+                          id="jira-file"
+                        />
+                        <Button variant="outline" size="sm" asChild>
+                          <label htmlFor="jira-file" className="cursor-pointer">
+                            Choose File
+                          </label>
+                        </Button>
+                      </div>
+                      {jiraFile && (
+                        <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                          <FileText className="w-4 h-4" />
+                          <span className="text-sm">{jiraFile.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Confluence Documentation</CardTitle>
-            <CardDescription>Enter the related Confluence page URL</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="confluence-url">Confluence Page URL</Label>
-              <Input
-                id="confluence-url"
-                value={confluenceUrl}
-                onChange={(e) => setConfluenceUrl(e.target.value)}
-                placeholder="https://company.atlassian.net/wiki/spaces/..."
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Confluence Data</CardTitle>
+                    <CardDescription>Upload JSON or Markdown file with Confluence documentation</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Drag and drop or click to upload
+                        </p>
+                        <Input
+                          type="file"
+                          accept=".json,.md,.markdown"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileUpload(file, "confluence");
+                          }}
+                          className="hidden"
+                          id="confluence-file"
+                        />
+                        <Button variant="outline" size="sm" asChild>
+                          <label htmlFor="confluence-file" className="cursor-pointer">
+                            Choose File
+                          </label>
+                        </Button>
+                      </div>
+                      {confluenceFile && (
+                        <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                          <FileText className="w-4 h-4" />
+                          <span className="text-sm">{confluenceFile.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="pt-6">
           <Button onClick={handleReview} disabled={isLoading} className="w-full">
-            {isLoading ? "Analyzing Alignment..." : "Review Task Against Documentation"}
+            {isLoading ? "Analyzing Task Against Documentation..." : "Review Task vs Documentation"}
           </Button>
         </CardContent>
       </Card>
@@ -155,46 +259,69 @@ const JiraReviewer = () => {
           <Card>
             <CardHeader>
               <CardTitle>Review Summary</CardTitle>
-              <CardDescription>
-                Analysis of {reviewData.ticket.key} against {reviewData.confluencePage.title}
-              </CardDescription>
+              <CardDescription>Analysis of Jira task alignment with Confluence documentation</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-1">
+                  <div className="text-2xl font-bold text-blue-600 mb-1">
                     {reviewData.analysis.overallScore}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Overall Score</div>
+                  <div className="text-xs text-muted-foreground">Overall Score</div>
                   <Progress value={reviewData.analysis.overallScore} className="mt-2" />
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-1">
-                    {reviewData.analysis.completeness}%
+                  <div className="text-2xl font-bold text-green-600 mb-1">
+                    {reviewData.analysis.coverageScore}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Completeness</div>
-                  <Progress value={reviewData.analysis.completeness} className="mt-2" />
+                  <div className="text-xs text-muted-foreground">Coverage</div>
+                  <Progress value={reviewData.analysis.coverageScore} className="mt-2" />
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-1">
-                    {reviewData.analysis.alignment}%
+                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                    {reviewData.analysis.consistencyScore}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Alignment</div>
-                  <Progress value={reviewData.analysis.alignment} className="mt-2" />
+                  <div className="text-xs text-muted-foreground">Consistency</div>
+                  <Progress value={reviewData.analysis.consistencyScore} className="mt-2" />
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600 mb-1">
+                    {reviewData.analysis.completenessScore}%
+                  </div>
+                  <div className="text-xs text-muted-foreground">Completeness</div>
+                  <Progress value={reviewData.analysis.completenessScore} className="mt-2" />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium">{reviewData.ticket.title}</h4>
-                  <div className="flex gap-2 mt-1">
-                    <Badge variant="outline">{reviewData.ticket.key}</Badge>
-                    <Badge variant="secondary">{reviewData.ticket.status}</Badge>
+                  <h4 className="font-medium mb-2">{reviewData.jiraTicket.title}</h4>
+                  <Badge variant="outline" className="mb-3">{reviewData.jiraTicket.key}</Badge>
+                  <div>
+                    <h5 className="text-sm font-medium mb-2">Acceptance Criteria</h5>
+                    <ul className="text-sm space-y-1">
+                      {reviewData.jiraTicket.acceptanceCriteria.map((criteria: string, index: number) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                          {criteria}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground">Compared against</div>
-                  <div className="font-medium">{reviewData.confluencePage.title}</div>
+                <div>
+                  <h4 className="font-medium mb-2">{reviewData.confluencePage.title}</h4>
+                  <div>
+                    <h5 className="text-sm font-medium mb-2">Requirements</h5>
+                    <ul className="text-sm space-y-1">
+                      {reviewData.confluencePage.requirements.map((req: string, index: number) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <FileText className="w-3 h-3 text-blue-500" />
+                          {req}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -202,28 +329,27 @@ const JiraReviewer = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Issues Found</CardTitle>
-              <CardDescription>Areas where the ticket doesn't align with documentation</CardDescription>
+              <CardTitle>Gaps & Issues</CardTitle>
+              <CardDescription>Misalignments between Jira task and Confluence documentation</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {reviewData.analysis.issues.map((issue: any, index: number) => (
-                  <div key={index} className={`border rounded-lg p-4 ${getSeverityColor(issue.severity)}`}>
+                {reviewData.analysis.gaps.map((gap: any, index: number) => (
+                  <div key={index} className={`border rounded-lg p-4 ${getSeverityColor(gap.severity)}`}>
                     <div className="flex items-start gap-3">
-                      {getSeverityIcon(issue.severity)}
+                      {getSeverityIcon(gap.severity)}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{issue.category}</span>
                           <Badge variant="outline" className="text-xs">
-                            {issue.severity}
+                            {gap.severity}
                           </Badge>
                           <Badge variant="secondary" className="text-xs">
-                            {issue.type}
+                            {gap.type.replace('_', ' ')}
                           </Badge>
                         </div>
-                        <p className="text-sm mb-2">{issue.description}</p>
+                        <p className="text-sm mb-2">{gap.description}</p>
                         <div className="text-xs p-2 bg-white/50 rounded border">
-                          <strong>Suggestion:</strong> {issue.suggestion}
+                          <strong>Suggestion:</strong> {gap.suggestion}
                         </div>
                       </div>
                     </div>
@@ -236,7 +362,7 @@ const JiraReviewer = () => {
           <Card>
             <CardHeader>
               <CardTitle>AI Recommendations</CardTitle>
-              <CardDescription>Suggestions for improving task alignment</CardDescription>
+              <CardDescription>Actionable suggestions for improving task-documentation alignment</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">

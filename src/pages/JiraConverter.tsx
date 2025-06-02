@@ -1,120 +1,127 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Ticket, Copy, Download } from "lucide-react";
+import { Ticket, Download, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const dummyMarkdown = `# [PROJ-123] Implement User Authentication System
-
-**Type:** Story  
-**Priority:** High  
-**Status:** In Progress  
-**Assignee:** john.doe@company.com  
-**Reporter:** jane.smith@company.com  
-**Created:** 2024-01-10  
-**Updated:** 2024-01-15  
-
-## Description
-Implement a comprehensive user authentication system with secure login, registration, and password management features.
-
-## Acceptance Criteria
-- [ ] User can register with email and password
-- [ ] User can login with valid credentials
-- [ ] User can reset password via email
-- [ ] Session management with JWT tokens
-- [ ] Input validation and error handling
-- [x] API endpoints for authentication
-
-## Story Points
-**Estimate:** 13 points
-
-## Components
-- Backend API development
-- Frontend login/register forms
-- Email service integration
-- Security implementation
-
-## Comments
-
-### John Doe - 2024-01-12
-Started working on the backend API endpoints. Authentication service is 60% complete.
-
-### Jane Smith - 2024-01-13
-Please ensure we follow OWASP guidelines for password security.
-
-### John Doe - 2024-01-15
-API endpoints completed. Moving to frontend integration next.
-
-## Attachments
-- [Authentication Flow Diagram](https://company.atlassian.net/secure/attachment/10001/auth-flow.png)
-- [Security Requirements](https://company.atlassian.net/secure/attachment/10002/security-req.pdf)
-
-## Linked Issues
-- **Blocks:** PROJ-124 - User Profile Management
-- **Related:** PROJ-115 - Password Policy Implementation
-
-## Labels
-\`authentication\`, \`security\`, \`backend\`, \`frontend\``;
+const dummyJiraData = {
+  key: "PROJ-123",
+  summary: "Implement user authentication system",
+  description: "Create a comprehensive user authentication system with login, registration, and password reset functionality. The system should use JWT tokens for session management.",
+  issueType: "Story",
+  status: "In Progress",
+  priority: "High",
+  assignee: "john.doe",
+  reporter: "jane.smith",
+  created: "2024-01-10T09:00:00Z",
+  updated: "2024-01-15T14:30:00Z",
+  labels: ["authentication", "security", "backend"],
+  components: ["API", "Security"],
+  fixVersions: ["v2.1.0"],
+  storyPoints: 8,
+  acceptanceCriteria: [
+    "User can register with email and password",
+    "User can login with valid credentials",
+    "JWT tokens are issued upon successful login",
+    "Password reset functionality works via email",
+    "All endpoints are properly secured"
+  ],
+  comments: [
+    {
+      author: "mike.wilson",
+      created: "2024-01-12T10:15:00Z",
+      body: "Started working on the authentication endpoints. Need clarification on token expiration time."
+    },
+    {
+      author: "jane.smith",
+      created: "2024-01-13T16:20:00Z",
+      body: "Token expiration should be 24 hours for regular users, 8 hours for admin users."
+    }
+  ],
+  attachments: ["auth-requirements.pdf", "api-design.png"],
+  subtasks: [
+    { key: "PROJ-124", summary: "Design authentication API endpoints" },
+    { key: "PROJ-125", summary: "Implement JWT token generation" },
+    { key: "PROJ-126", summary: "Add password hashing" }
+  ]
+};
 
 const JiraConverter = () => {
-  const [ticketUrl, setTicketUrl] = useState("https://company.atlassian.net/browse/PROJ-123");
+  const [jiraUrl, setJiraUrl] = useState("https://company.atlassian.net/browse/PROJ-123");
   const [isLoading, setIsLoading] = useState(false);
-  const [convertedMarkdown, setConvertedMarkdown] = useState("");
-  const [ticketInfo, setTicketInfo] = useState<any>(null);
+  const [convertedData, setConvertedData] = useState<any>(null);
   const { toast } = useToast();
 
   const handleConvert = async () => {
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
-      setConvertedMarkdown(dummyMarkdown);
-      setTicketInfo({
-        key: "PROJ-123",
-        title: "Implement User Authentication System",
-        type: "Story",
-        status: "In Progress",
-        priority: "High",
-        assignee: "john.doe@company.com",
-        storyPoints: 13,
-        comments: 3
-      });
+      setConvertedData(dummyJiraData);
       setIsLoading(false);
       toast({
-        title: "Ticket Converted Successfully",
-        description: "Jira ticket has been converted to Markdown format.",
+        title: "Jira Ticket Converted",
+        description: "Ticket has been converted to both JSON and Markdown formats.",
       });
     }, 2500);
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(convertedMarkdown);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
     toast({
       title: "Copied to Clipboard",
-      description: "The Markdown content has been copied to your clipboard.",
+      description: "The content has been copied to your clipboard.",
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "in progress": return "bg-blue-100 text-blue-800";
-      case "done": return "bg-green-100 text-green-800";
-      case "to do": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
+  const jsonOutput = convertedData ? JSON.stringify(convertedData, null, 2) : "";
+  
+  const markdownOutput = convertedData ? `# ${convertedData.key}: ${convertedData.summary}
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "high": return "bg-red-100 text-red-800";
-      case "medium": return "bg-orange-100 text-orange-800";
-      case "low": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
+**Type:** ${convertedData.issueType}  
+**Status:** ${convertedData.status}  
+**Priority:** ${convertedData.priority}  
+**Assignee:** ${convertedData.assignee}  
+**Reporter:** ${convertedData.reporter}  
+**Story Points:** ${convertedData.storyPoints}  
+
+**Created:** ${new Date(convertedData.created).toLocaleString()}  
+**Updated:** ${new Date(convertedData.updated).toLocaleString()}
+
+## Description
+${convertedData.description}
+
+## Acceptance Criteria
+${convertedData.acceptanceCriteria.map((criteria: string, index: number) => `${index + 1}. ${criteria}`).join('\n')}
+
+## Labels
+${convertedData.labels.map((label: string) => `- ${label}`).join('\n')}
+
+## Components
+${convertedData.components.map((component: string) => `- ${component}`).join('\n')}
+
+## Fix Versions
+${convertedData.fixVersions.map((version: string) => `- ${version}`).join('\n')}
+
+## Subtasks
+${convertedData.subtasks.map((subtask: any) => `- [${subtask.key}] ${subtask.summary}`).join('\n')}
+
+## Comments
+${convertedData.comments.map((comment: any) => `### ${comment.author} - ${new Date(comment.created).toLocaleString()}
+${comment.body}
+`).join('\n')}
+
+## Attachments
+${convertedData.attachments.map((attachment: string) => `- ${attachment}`).join('\n')}
+
+---
+*Converted from Jira on ${new Date().toLocaleString()}*
+` : "";
 
   return (
     <div className="space-y-6">
@@ -124,7 +131,7 @@ const JiraConverter = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold">Jira Ticket Converter</h1>
-          <p className="text-muted-foreground">Convert Jira tickets to structured Markdown documentation</p>
+          <p className="text-muted-foreground">Convert Jira tickets to JSON or Markdown format</p>
         </div>
       </div>
 
@@ -136,55 +143,63 @@ const JiraConverter = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="ticket-url">Jira Ticket URL</Label>
+              <Label htmlFor="jira-url">Jira Ticket URL</Label>
               <Input
-                id="ticket-url"
-                value={ticketUrl}
-                onChange={(e) => setTicketUrl(e.target.value)}
+                id="jira-url"
+                value={jiraUrl}
+                onChange={(e) => setJiraUrl(e.target.value)}
                 placeholder="https://company.atlassian.net/browse/PROJ-123"
               />
             </div>
             <Button onClick={handleConvert} disabled={isLoading} className="w-full">
-              {isLoading ? "Converting..." : "Convert to Markdown"}
+              {isLoading ? "Converting..." : "Convert Ticket"}
             </Button>
           </CardContent>
         </Card>
 
-        {ticketInfo && (
+        {convertedData && (
           <Card>
             <CardHeader>
               <CardTitle>Ticket Summary</CardTitle>
-              <CardDescription>Overview of the converted ticket</CardDescription>
+              <CardDescription>Overview of the converted Jira ticket</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <h4 className="font-medium">{ticketInfo.title}</h4>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline">{ticketInfo.key}</Badge>
-                  <Badge className={getStatusColor(ticketInfo.status)}>
-                    {ticketInfo.status}
-                  </Badge>
-                  <Badge className={getPriorityColor(ticketInfo.priority)}>
-                    {ticketInfo.priority}
-                  </Badge>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <span className="text-muted-foreground">Type:</span>
-                  <div>{ticketInfo.type}</div>
+                  <h4 className="font-medium">{convertedData.summary}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline">{convertedData.key}</Badge>
+                    <Badge variant={convertedData.status === 'Done' ? 'default' : 'secondary'}>
+                      {convertedData.status}
+                    </Badge>
+                    <Badge variant={convertedData.priority === 'High' ? 'destructive' : 'outline'}>
+                      {convertedData.priority}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Type:</span> {convertedData.issueType}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Points:</span> {convertedData.storyPoints}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Assignee:</span> {convertedData.assignee}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Subtasks:</span> {convertedData.subtasks.length}
+                  </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Story Points:</span>
-                  <div>{ticketInfo.storyPoints}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Assignee:</span>
-                  <div className="truncate">{ticketInfo.assignee}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Comments:</span>
-                  <div>{ticketInfo.comments}</div>
+                  <h5 className="font-medium mb-2">Labels</h5>
+                  <div className="flex flex-wrap gap-1">
+                    {convertedData.labels.map((label: string) => (
+                      <Badge key={label} variant="outline" className="text-xs">
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -192,43 +207,58 @@ const JiraConverter = () => {
         )}
       </div>
 
-      {convertedMarkdown && (
+      {convertedData && (
         <Card>
           <CardHeader>
-            <CardTitle>Converted Markdown</CardTitle>
-            <CardDescription>Structured Markdown output from the Jira ticket</CardDescription>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Markdown
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                Download MD
-              </Button>
-            </div>
+            <CardTitle>Export Options</CardTitle>
+            <CardDescription>Choose your preferred export format</CardDescription>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={convertedMarkdown}
-              readOnly
-              className="min-h-[400px] font-mono text-sm"
-            />
+            <Tabs defaultValue="markdown" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="markdown">Markdown Format</TabsTrigger>
+                <TabsTrigger value="json">JSON Format</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="markdown" className="space-y-4">
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(markdownOutput)}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Markdown
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download MD
+                  </Button>
+                </div>
+                <Textarea
+                  value={markdownOutput}
+                  readOnly
+                  className="min-h-[400px] font-mono text-sm"
+                />
+              </TabsContent>
+              
+              <TabsContent value="json" className="space-y-4">
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(jsonOutput)}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy JSON
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download JSON
+                  </Button>
+                </div>
+                <Textarea
+                  value={jsonOutput}
+                  readOnly
+                  className="min-h-[400px] font-mono text-sm"
+                />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       )}
-
-      <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-        <CardContent className="pt-6">
-          <h3 className="font-semibold mb-2">Included Data</h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Ticket details and metadata</li>
-            <li>• Description and acceptance criteria</li>
-            <li>• Comments and activity history</li>
-            <li>• Attachments and linked issues</li>
-          </ul>
-        </CardContent>
-      </Card>
     </div>
   );
 };
