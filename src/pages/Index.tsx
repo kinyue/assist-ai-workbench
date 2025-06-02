@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +5,8 @@ import {
   GitPullRequest, 
   FileText, 
   FileX, 
-  Confluence, 
-  Jira, 
+  Globe, 
+  Ticket, 
   FileJson,
   Github,
   ArrowUp
@@ -45,7 +44,7 @@ const modules = [
     id: "confluence-converter",
     title: "Confluence to Markdown",
     description: "Convert Confluence pages to clean Markdown format",
-    icon: Confluence,
+    icon: Globe,
     path: "/confluence-converter",
     color: "from-indigo-500 to-blue-600",
     features: ["Clean Conversion", "Preserve Formatting", "Bulk Export"]
@@ -54,7 +53,7 @@ const modules = [
     id: "jira-converter",
     title: "Jira Ticket Converter",
     description: "Convert Jira tickets to structured Markdown documentation",
-    icon: Jira,
+    icon: Ticket,
     path: "/jira-converter",
     color: "from-orange-500 to-red-600",
     features: ["Ticket Details", "Comments Export", "Attachment Links"]
@@ -63,7 +62,7 @@ const modules = [
     id: "jira-reviewer",
     title: "Jira Task Reviewer",
     description: "Review Jira tasks against Confluence documentation with AI insights",
-    icon: Jira,
+    icon: Ticket,
     path: "/jira-reviewer",
     color: "from-teal-500 to-green-600",
     features: ["Documentation Sync", "Acceptance Criteria", "AI Analysis"]

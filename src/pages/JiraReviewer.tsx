@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Jira, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { Ticket, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const dummyReviewData = {
@@ -97,7 +96,7 @@ const JiraReviewer = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-green-600 flex items-center justify-center">
-          <Jira className="w-5 h-5 text-white" />
+          <Ticket className="w-5 h-5 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold">Jira Task Reviewer</h1>

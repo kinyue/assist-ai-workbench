@@ -4,8 +4,8 @@ import {
   GitPullRequest, 
   FileText, 
   FileX, 
-  Confluence, 
-  Jira, 
+  Globe, 
+  Ticket, 
   FileJson,
   Github
 } from "lucide-react";
@@ -27,14 +27,14 @@ const menuItems = [
   { title: "PR to JSON/MD", url: "/pr-converter", icon: GitPullRequest },
   { title: "File Reviewer", url: "/file-reviewer", icon: FileX },
   { title: "YAML Comparer", url: "/yaml-comparer", icon: FileJson },
-  { title: "Confluence to MD", url: "/confluence-converter", icon: Confluence },
-  { title: "Jira to MD", url: "/jira-converter", icon: Jira },
-  { title: "Jira Reviewer", url: "/jira-reviewer", icon: Jira },
+  { title: "Confluence to MD", url: "/confluence-converter", icon: Globe },
+  { title: "Jira to MD", url: "/jira-converter", icon: Ticket },
+  { title: "Jira Reviewer", url: "/jira-reviewer", icon: Ticket },
   { title: "PR Reviewer", url: "/pr-reviewer", icon: Github },
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -44,14 +44,16 @@ export function AppSidebar() {
       ? "bg-primary text-primary-foreground font-medium shadow-sm" 
       : "hover:bg-muted/50 transition-colors";
 
+  const isCollapsed = state === "collapsed";
+
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible>
+    <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="icon">
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
             <FileText className="w-4 h-4 text-white" />
           </div>
-          {!collapsed && (
+          {!isCollapsed && (
             <div>
               <h2 className="font-semibold text-lg">Working Assistant</h2>
               <p className="text-xs text-muted-foreground">Development Tools</p>
@@ -62,7 +64,7 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
+          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
             Tools
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -74,10 +76,10 @@ export function AppSidebar() {
                       to={item.url} 
                       end 
                       className={getNavCls}
-                      title={collapsed ? item.title : undefined}
+                      title={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

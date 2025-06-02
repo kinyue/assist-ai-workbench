@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Confluence, Copy, Download } from "lucide-react";
+import { Globe, Copy, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const dummyMarkdown = `# API Documentation
@@ -107,7 +106,7 @@ const ConfluenceConverter = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
-          <Confluence className="w-5 h-5 text-white" />
+          <Globe className="w-5 h-5 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold">Confluence to Markdown</h1>
